@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pokédex Binder</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="binder">
+    <header class="binder-header">
+      <h1>Pokédex Binder</h1>
+      <div class="controls">
+        <input
+          type="text"
+          id="search"
+          placeholder="Search by name or #number…"
+          autocomplete="off"
+        />
+        <select id="gen-select">
+          <option value="all">All Generations</option>
+          <option value="1">Generation I (1–151)</option>
+          <option value="2">Generation II (152–251)</option>
+          <option value="3">Generation III (252–386)</option>
+          <option value="4">Generation IV (387–493)</option>
+          <option value="5">Generation V (494–649)</option>
+          <option value="6">Generation VI (650–721)</option>
+          <option value="7">Generation VII (722–809)</option>
+          <option value="8">Generation VIII (810–905)</option>
+          <option value="9">Generation IX (906–1025)</option>
+        </select>
+      </div>
+    </header>
+
+    <nav class="pagination" id="pagination-top"></nav>
+
+    <main class="card-grid" id="card-grid">
+      <div class="loading" id="loading">
+        <div class="pokeball-spinner"></div>
+        <p>Loading Pokémon…</p>
+      </div>
+    </main>
+
+    <nav class="pagination" id="pagination-bottom"></nav>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
