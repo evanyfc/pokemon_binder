@@ -59,6 +59,7 @@ let currentPage   = 1;
 let activeIds     = [];      // The filtered/full list of dex IDs being paged
 let searchQuery   = '';
 let selectedGen   = 'all';
+let isPrintMode   = false;
 
 // Simple in-memory cache so navigating back/forward doesn't re-fetch
 const cache = new Map();
@@ -95,8 +96,15 @@ genSelect.addEventListener('change', () => {
   renderPage();
 });
 
-printBtn.addEventListener('click', () => {
-  window.print();
+printBtn.addEventListener('click', async () => {
+  await printAllSelected();
+});
+
+window.addEventListener('afterprint', () => {
+  if (isPrintMode) {
+    isPrintMode = false;
+    renderPage();
+  }
 });
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -119,9 +127,9 @@ function buildActiveIds() {
     } else {
       // Name match — only filter IDs we've already cached
       ids = ids.filter(id => {
-        if (!cache.has(id)) return true; // keep uncached; fetch later
-        const p = cache.get(id);
-        return p && p.name.includes(searchQuery);
+        const p = cache.get(id) || (bundledData ? bundledData.get(id) : null);
+        if (!p) return true; // keep uncached; fetch later
+        return p.name.includes(searchQuery);
       });
     }
   }
@@ -146,6 +154,48 @@ function generationLabel(id) {
 function pageIds() {
   const start = (currentPage - 1) * PER_PAGE;
   return activeIds.slice(start, start + PER_PAGE);
+}
+
+/** Wait until visible card sprites have loaded before printing. */
+function waitForCardImages() {
+  const images = Array.from(cardGrid.querySelectorAll('img'));
+  return Promise.all(images.map(img => {
+    if (img.complete) return Promise.resolve();
+    return new Promise(resolve => {
+      img.addEventListener('load', resolve, { once: true });
+      img.addEventListener('error', resolve, { once: true });
+    });
+  }));
+}
+
+/** Render all currently selected Pokémon, then open the print dialog. */
+async function printAllSelected() {
+  const originalLabel = printBtn.textContent;
+  printBtn.disabled = true;
+  printBtn.textContent = 'Preparing print…';
+
+  try {
+    buildActiveIds();
+    showLoading(`Preparing ${activeIds.length} selected Pokémon for print…`);
+
+    const results = await Promise.all(activeIds.map(fetchPokemon));
+    isPrintMode = true;
+    paintCards(results);
+
+    await new Promise(resolve =>
+      requestAnimationFrame(() => requestAnimationFrame(resolve))
+    );
+    await waitForCardImages();
+
+    window.print();
+  } catch {
+    isPrintMode = false;
+    showError('Failed to prepare the selected Pokémon for printing. Please try again.');
+    renderPage();
+  } finally {
+    printBtn.disabled = false;
+    printBtn.textContent = originalLabel;
+  }
 }
 
 // ── Data loading ───────────────────────────────────────────────────────────
@@ -313,7 +363,7 @@ function buildCard(pokemon) {
     img.className = 'card-sprite';
     img.src = spriteUrl;
     img.alt = displayName;
-    img.loading = 'lazy';
+    img.loading = isPrintMode ? 'eager' : 'lazy';
     img.onerror = () => {
       img.replaceWith(missingSprite());
     };
@@ -355,11 +405,11 @@ function missingSprite() {
 }
 
 /** Show the animated loading indicator. */
-function showLoading() {
+function showLoading(message = 'Loading Pokémon…') {
   cardGrid.innerHTML =
     '<div class="loading">' +
       '<div class="pokeball-spinner"></div>' +
-      '<p>Loading Pokémon…</p>' +
+      `<p>${message}</p>` +
     '</div>';
 }
 
