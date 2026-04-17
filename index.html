@@ -10,7 +10,7 @@
   <div class="binder">
     <header class="binder-header">
       <h1>Pokédex Binder</h1>
-      <div class="controls">
+      <div class="controls no-print">
         <input
           type="text"
           id="search"
@@ -29,7 +29,11 @@
           <option value="8">Generation VIII (810–905)</option>
           <option value="9">Generation IX (906–1025)</option>
         </select>
+        <button id="print-btn" type="button">Print binder cards</button>
       </div>
+      <p class="print-hint no-print">
+        Prints each Pokémon at standard trading card size (2.5 × 3.5 in) for 9-pocket binder pages.
+      </p>
     </header>
 
     <nav class="pagination" id="pagination-top"></nav>

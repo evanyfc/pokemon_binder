@@ -42,6 +42,18 @@ const GEN_RANGES = {
   9: [906, 1025],
 };
 
+const GEN_LABELS = {
+  1: 'Gen I',
+  2: 'Gen II',
+  3: 'Gen III',
+  4: 'Gen IV',
+  5: 'Gen V',
+  6: 'Gen VI',
+  7: 'Gen VII',
+  8: 'Gen VIII',
+  9: 'Gen IX',
+};
+
 // ── State ──────────────────────────────────────────────────────────────────
 let currentPage   = 1;
 let activeIds     = [];      // The filtered/full list of dex IDs being paged
@@ -57,6 +69,7 @@ const paginationTop  = document.getElementById('pagination-top');
 const paginationBot  = document.getElementById('pagination-bottom');
 const searchInput    = document.getElementById('search');
 const genSelect      = document.getElementById('gen-select');
+const printBtn       = document.getElementById('print-btn');
 
 // ── Boot ───────────────────────────────────────────────────────────────────
 // Pre-load the bundled data file so all page navigations are instant.
@@ -80,6 +93,10 @@ genSelect.addEventListener('change', () => {
   currentPage = 1;
   buildActiveIds();
   renderPage();
+});
+
+printBtn.addEventListener('click', () => {
+  window.print();
 });
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -115,6 +132,14 @@ function buildActiveIds() {
 /** Total number of pages given current filters. */
 function totalPages() {
   return Math.max(1, Math.ceil(activeIds.length / PER_PAGE));
+}
+
+/** Return a readable generation label for a dex ID. */
+function generationLabel(id) {
+  for (const [gen, [lo, hi]] of Object.entries(GEN_RANGES)) {
+    if (id >= lo && id <= hi) return GEN_LABELS[gen];
+  }
+  return 'Unknown';
 }
 
 /** IDs for the currently visible page. */
@@ -243,6 +268,7 @@ function buildCard(pokemon) {
   const stripeColour  = PRIMARY_TYPE_COLOURS[primaryType] || '#ccc';
   const dexNumber     = `#${String(id).padStart(4, '0')}`;
   const displayName   = name.replace(/-/g, ' ');
+  const genText       = generationLabel(id);
 
   const card = document.createElement('div');
   card.className = 'card';
@@ -250,13 +276,38 @@ function buildCard(pokemon) {
   card.setAttribute('data-id', id);
   card.setAttribute('title', `${dexNumber} ${displayName}`);
 
-  // Dex number
+  // Top metadata row
+  const metaEl = document.createElement('div');
+  metaEl.className = 'card-meta';
+
   const dexEl = document.createElement('span');
   dexEl.className = 'card-dex';
   dexEl.textContent = dexNumber;
-  card.appendChild(dexEl);
 
-  // Sprite
+  const metaRightEl = document.createElement('div');
+  metaRightEl.className = 'card-meta-right';
+
+  const genEl = document.createElement('span');
+  genEl.className = 'card-gen';
+  genEl.textContent = genText;
+
+  const ballEl = document.createElement('span');
+  ballEl.className = 'card-ball';
+  ballEl.setAttribute('aria-hidden', 'true');
+
+  metaRightEl.append(genEl, ballEl);
+  metaEl.append(dexEl, metaRightEl);
+  card.appendChild(metaEl);
+
+  // Sprite art area
+  const artEl = document.createElement('div');
+  artEl.className = 'card-art';
+
+  const artBallEl = document.createElement('span');
+  artBallEl.className = 'card-ball card-ball-watermark';
+  artBallEl.setAttribute('aria-hidden', 'true');
+  artEl.appendChild(artBallEl);
+
   if (spriteUrl) {
     const img = document.createElement('img');
     img.className = 'card-sprite';
@@ -266,10 +317,12 @@ function buildCard(pokemon) {
     img.onerror = () => {
       img.replaceWith(missingSprite());
     };
-    card.appendChild(img);
+    artEl.appendChild(img);
   } else {
-    card.appendChild(missingSprite());
+    artEl.appendChild(missingSprite());
   }
+
+  card.appendChild(artEl);
 
   // Name
   const nameEl = document.createElement('span');

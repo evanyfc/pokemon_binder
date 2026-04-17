@@ -11,6 +11,8 @@
   --dex-color: #888;
   --name-color: #222;
   --radius: 10px;
+  --card-width: 2.5in;
+  --card-height: 3.5in;
 }
 
 body {
@@ -50,7 +52,8 @@ body {
 }
 
 .controls input,
-.controls select {
+.controls select,
+.controls button {
   padding: 8px 14px;
   border-radius: 6px;
   border: 2px solid #3a3a5e;
@@ -58,7 +61,18 @@ body {
   color: #f0e6d3;
   font-size: 0.95rem;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+
+.controls button {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.controls button:hover {
+  background: #f8d030;
+  color: #1a1a2e;
+  border-color: #f8d030;
 }
 
 .controls input::placeholder { color: #aaa; }
@@ -69,6 +83,12 @@ body {
 .controls input { width: 260px; }
 
 .controls select option { background: #0f3460; }
+
+.print-hint {
+  margin-top: 10px;
+  color: #d7d7d7;
+  font-size: 0.95rem;
+}
 
 /* ── Pagination ──────────────────────────────────────────────────────── */
 .pagination {
@@ -118,8 +138,9 @@ body {
 /* ── Card grid ───────────────────────────────────────────────────────── */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 18px;
+  justify-content: center;
 }
 
 /* ── Loading spinner ─────────────────────────────────────────────────── */
@@ -180,19 +201,26 @@ body {
 
 /* ── Individual card ─────────────────────────────────────────────────── */
 .card {
-  background: var(--card-bg);
-  border: 2px solid var(--card-border);
-  border-radius: var(--radius);
-  padding: 10px 10px 12px;
+  background: linear-gradient(180deg, #fffdf7 0%, #f7f2e7 100%);
+  border: 3px solid #e4c76a;
+  border-radius: 14px;
+  width: min(100%, 210px);
+  min-height: 290px;
+  aspect-ratio: 5 / 7;
+  padding: 12px 12px 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  box-shadow: 0 4px 12px var(--card-shadow);
+  gap: 8px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
   transition: transform 0.15s, box-shadow 0.15s;
   cursor: default;
   position: relative;
   overflow: hidden;
+  justify-self: center;
+  justify-content: flex-start;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .card:hover {
@@ -205,45 +233,138 @@ body {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 4px;
-  background: var(--type-stripe, #ccc);
-  border-radius: var(--radius) var(--radius) 0 0;
+  height: 8px;
+  background: linear-gradient(90deg, var(--type-stripe, #ccc), #fff3c4);
+  border-radius: 14px 14px 0 0;
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(120, 100, 40, 0.22);
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+.card-meta {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card-meta-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .card-dex {
   align-self: flex-start;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--dex-color);
+  font-size: 1rem;
+  font-weight: 800;
+  color: #3d3d3d;
+  letter-spacing: 0.6px;
+  line-height: 1;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid #d8d8d8;
+  z-index: 1;
+}
+
+.card-gen {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
   letter-spacing: 0.5px;
+  color: #5f4b17;
+  background: linear-gradient(180deg, #fff5cc 0%, #f3df8b 100%);
+  border: 1px solid #d9bd56;
+  border-radius: 999px;
+  padding: 4px 8px;
+}
+
+.card-ball {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1.5px solid #222;
+  background: linear-gradient(to bottom, #e53935 0 48%, #222 48% 54%, #ffffff 54% 100%);
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.card-ball::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid #222;
+}
+
+.card-art {
+  width: 100%;
+  flex: 1;
+  min-height: 138px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border-radius: 12px;
+  border: 2px solid #d8e1ee;
+  background: radial-gradient(circle at top, #ffffff 0%, #edf4ff 62%, #dbe5f5 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-ball-watermark {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 22px;
+  height: 22px;
+  opacity: 0.22;
 }
 
 .card-sprite {
-  width: 88px;
-  height: 88px;
+  width: 126px;
+  height: 126px;
   image-rendering: pixelated;
   object-fit: contain;
+  object-position: center;
+  display: block;
+  margin: 0 auto;
 }
 
 .card-sprite-missing {
-  width: 88px;
-  height: 88px;
+  width: 126px;
+  height: 126px;
   background: #f5f5f5;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.2rem;
+  font-size: 2.6rem;
+  margin: 0 auto;
 }
 
 .card-name {
-  font-size: 0.82rem;
-  font-weight: 700;
+  width: 100%;
+  margin-top: 2px;
+  font-size: 1rem;
+  font-weight: 800;
   color: var(--name-color);
   text-align: center;
   text-transform: capitalize;
   letter-spacing: 0.3px;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .card-types {
@@ -251,6 +372,10 @@ body {
   gap: 5px;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
+  min-height: 28px;
+  width: 100%;
+  padding-bottom: 2px;
 }
 
 .type-badge {
@@ -283,6 +408,78 @@ body {
 .type-dark     { background: #705848; }
 .type-steel    { background: #B8B8D0; color: #333; text-shadow: none; }
 .type-fairy    { background: #EE99AC; }
+
+/* ── Print layout for binder pages ───────────────────────────────────── */
+@page {
+  size: letter portrait;
+  margin: 0.15in;
+}
+
+@media print {
+  :root {
+    --card-border: #c8c8c8;
+    --card-shadow: rgba(0, 0, 0, 0);
+  }
+
+  body {
+    background: #fff;
+    color: #111;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .binder {
+    max-width: none;
+    padding: 0;
+  }
+
+  .no-print,
+  .pagination {
+    display: none !important;
+  }
+
+  .binder-header {
+    display: none !important;
+  }
+
+  .card-grid {
+    grid-template-columns: repeat(3, var(--card-width));
+    gap: 0;
+    justify-content: center;
+    align-content: start;
+  }
+
+  .card {
+    width: var(--card-width);
+    height: var(--card-height);
+    min-height: auto;
+    border-radius: 0.12in;
+    box-shadow: none;
+    transform: none !important;
+  }
+
+  .card-art {
+    min-height: 1.45in;
+  }
+
+  .card-sprite,
+  .card-sprite-missing {
+    width: 1.15in;
+    height: 1.15in;
+  }
+
+  .card-name {
+    font-size: 10.5pt;
+  }
+
+  .card-gen {
+    font-size: 7pt;
+  }
+
+  .type-badge {
+    font-size: 7pt;
+  }
+}
 
 /* ── Responsive tweaks ───────────────────────────────────────────────── */
 @media (max-width: 480px) {
